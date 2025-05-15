@@ -19,8 +19,12 @@ class ReservationController extends Controller
 
         // Récupérer toutes les réservations actives pour ce véhicule
         $reservations = Reservation::where('vehicule_id', $request->vehicule_id)
-            ->whereNotIn('statut', ['annulée', 'refusée', 'terminée'])
+            ->where('statut', 'confirmée')
             ->get();
+            /* $isAvailable = Reservation::where('vehicule_id', $request->vehicule_id)
+            ->where('statut', "confirmée")
+            ->whereRaw("  ?  between  date_debut and date_fin  or  ? between  date_debut and date_fin  " ,[$request->date_debut , $request->date_fin])
+            ->count(); */
 
         // Préparer la liste de toutes les dates indisponibles
         $unavailableDates = [];
@@ -30,8 +34,10 @@ class ReservationController extends Controller
             $end = Carbon::parse($reservation->date_fin);
             
             // Ajouter toutes les dates de cette réservation
+            
             for ($date = $start; $date->lte($end); $date->addDay()) {
                 $unavailableDates[] = $date->format('Y-m-d');
+                if ($date->format('Y-m-d') === $end->format('Y-m-d')) break;
             }
         }
 
